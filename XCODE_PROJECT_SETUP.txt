@@ -1,0 +1,192 @@
+# iOS Notification App - File Structure & Code Overview
+
+## Complete File Structure
+
+```
+themotivator/
+├── README.md                          # Quick start guide
+├── SETUP_AND_TESTING_GUIDE.md        # Detailed instructions
+├── XCODE_PROJECT_SETUP.txt           # This file
+├── NotificationApp.swift             # @main entry point
+├── ContentView.swift                 # SwiftUI UI layer
+└── NotificationManager.swift         # Business logic
+```
+
+## How to Structure in Xcode
+
+When you create the Xcode project, the folder structure should be:
+
+```
+NotificationApp/
+├── NotificationApp.swift             ← Add here
+├── ContentView.swift                 ← Add here
+├── NotificationManager.swift         ← Add here
+├── NotificationApp.xcodeproj/        ← Auto-created by Xcode
+│   └── project.pbxproj
+├── NotificationAppTests/             ← Auto-created by Xcode
+│   └── (test files)
+└── Preview Content/                  ← Auto-created by Xcode
+    └── Preview Assets.xcassets
+```
+
+## Code Architecture
+
+### 1. NotificationManager.swift
+**Purpose**: Manages all notification logic
+
+**Key Components**:
+- `NotificationManager` class (observable)
+- `@Published var notificationCount` - updates UI when notifications sent
+- `startNotifications()` - starts the timer
+- `stopNotifications()` - stops the timer
+- `UNUserNotificationCenterDelegate` - handles foreground notifications
+
+**How It Works**:
+1. Requests user permission on init
+2. When started, creates a Timer that fires every 5 seconds
+3. Each timer fire calls `scheduleNotification()`
+4. `scheduleNotification()` creates a UNNotificationRequest
+5. UNUserNotificationCenter displays the notification
+
+### 2. ContentView.swift
+**Purpose**: User interface
+
+**Key Components**:
+- `@StateObject var notificationManager` - manages notification state
+- Status indicator (green/red circle)
+- Notification counter display
+- Start/Stop buttons
+- Info section with instructions
+
+**UI Layout**:
+```
+Title: "Notification Scheduler"
+┌─────────────────────────┐
+│ Status: Active/Inactive │
+├─────────────────────────┤
+│ Notifications Sent: 42  │
+├─────────────────────────┤
+│ [Start] [Stop] Buttons  │
+├─────────────────────────┤
+│ How It Works (Info)     │
+└─────────────────────────┘
+```
+
+### 3. NotificationApp.swift
+**Purpose**: App entry point
+
+**Code**:
+```swift
+@main
+struct NotificationApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+This is the minimal required app structure for SwiftUI.
+
+## Data Flow Diagram
+
+```
+USER INTERACTION
+        ↓
+   ContentView
+  (Start Button)
+        ↓
+NotificationManager
+  .startNotifications()
+        ↓
+    Timer (5 sec)
+        ↓
+scheduleNotification()
+        ↓
+UNUserNotificationCenter
+        ↓
+Display Notification
+        ↓
+Update notificationCount
+        ↓
+ContentView Updates
+(Counter refreshes)
+```
+
+## Key iOS Frameworks Used
+
+| Framework | Purpose |
+|-----------|---------|
+| **SwiftUI** | Modern UI framework |
+| **Foundation** | Basic types (Timer, UUID) |
+| **UserNotifications** | UNUserNotificationCenter, UNNotificationRequest, etc. |
+
+## Configuration
+
+### Notification Timing
+Located in **NotificationManager.swift** line 13:
+
+```swift
+private let notificationInterval: TimeInterval = 5.0
+```
+
+| Value | Interval |
+|-------|----------|
+| 5.0 | 5 seconds (testing) |
+| 300.0 | 5 minutes (production) |
+
+### Notification Content
+Located in **NotificationManager.swift** `scheduleNotification()` method:
+
+```swift
+content.title = "Reminder Notification"
+content.body = "This is notification #\(notificationCount + 1)"
+content.sound = .default
+content.badge = NSNumber(value: notificationCount + 1)
+```
+
+You can customize:
+- Title and body text
+- Sound (.default, .none, custom sound)
+- Badge number
+- Custom actions
+
+## Xcode Project Requirements
+
+**Minimum Requirements**:
+- iOS 15.0 or later (set in Build Settings)
+- iPhone 14 simulator
+- Xcode 13+
+
+**Build Settings**:
+1. Select project in navigator
+2. Select "NotificationApp" target
+3. Build Settings tab
+4. Ensure "Minimum Deployments" is iOS 15.0+
+
+## Common Xcode Terms
+
+| Term | Meaning |
+|------|---------|
+| **Target** | Build recipe for an app/framework |
+| **Scheme** | Build configuration (Debug/Release) |
+| **Bundle ID** | Unique app identifier |
+| **Build Phases** | Steps to compile code |
+| **Frameworks** | Pre-built code libraries |
+
+## Testing Checklist
+
+Before submitting to App Store or considering "done":
+
+- [ ] App launches without crashes
+- [ ] Permission dialog appears
+- [ ] Start button works
+- [ ] Notifications appear as banners every 5 seconds
+- [ ] Counter increments correctly
+- [ ] Stop button halts notifications
+- [ ] App handles backgrounding gracefully
+
+---
+
+**Next**: Follow SETUP_AND_TESTING_GUIDE.md for step-by-step instructions!
